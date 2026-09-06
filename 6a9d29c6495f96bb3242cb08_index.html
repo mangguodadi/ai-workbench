@@ -1,0 +1,1677 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AI工作台">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0D1B2A">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>AI手机工作台</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --sidebar-bg:#0D1B2A;--sidebar-hover:#1B2838;--sidebar-active:#1565C0;
+  --content-bg:#F0F2F5;--card-bg:#FFFFFF;--primary:#1565C0;--primary-light:#E3F2FD;
+  --primary-dark:#0D47A1;--text-dark:#1A1A2E;--text-gray:#6C757D;--text-white:#FFFFFF;
+  --border:#E0E0E0;--success:#2E7D32;--warning:#ED6C02;--danger:#D32F2F;
+  --sidebar-w:220px;--radius:12px;--shadow:0 2px 8px rgba(0,0,0,0.08);
+  --shadow-lg:0 4px 20px rgba(0,0,0,0.12);
+}
+html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;font-size:14px;color:var(--text-dark);background:var(--content-bg)}
+#app{display:flex;height:100%;height:100dvh}
+
+/* ===== Sidebar ===== */
+.sidebar{width:var(--sidebar-w);background:var(--sidebar-bg);color:var(--text-white);display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:100;transition:transform .3s ease}
+.sidebar-header{padding:20px 16px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.sidebar-logo{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700;letter-spacing:.5px}
+.sidebar-logo .logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#1565C0,#42A5F5);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.sidebar-nav{flex:1;padding:12px 8px;overflow-y:auto}
+.sidebar-nav::-webkit-scrollbar{width:4px}
+.sidebar-nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:4px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;cursor:pointer;transition:all .2s;color:rgba(255,255,255,0.7);margin-bottom:4px;text-decoration:none}
+.nav-item:hover{background:var(--sidebar-hover);color:var(--text-white)}
+.nav-item.active{background:var(--sidebar-active);color:var(--text-white);font-weight:600}
+.nav-icon{font-size:18px;width:24px;text-align:center;flex-shrink:0}
+.nav-label{font-size:15px}
+.sidebar-footer{padding:8px;border-top:1px solid rgba(255,255,255,0.08)}
+
+/* ===== Mobile Header ===== */
+.mobile-header{display:none;position:fixed;top:0;left:0;right:0;height:52px;background:var(--sidebar-bg);color:var(--text-white);z-index:99;align-items:center;padding:0 12px;gap:12px}
+.menu-btn{background:none;border:none;color:var(--text-white);font-size:22px;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:8px}
+.menu-btn:active{background:rgba(255,255,255,0.1)}
+.mobile-title{font-size:16px;font-weight:600}
+
+/* ===== Content ===== */
+.content{flex:1;margin-left:var(--sidebar-w);height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.content::-webkit-scrollbar{width:6px}
+.content::-webkit-scrollbar-thumb{background:#ccc;border-radius:6px}
+.page{display:none;padding:16px;max-width:900px;margin:0 auto}
+.page.active{display:block;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===== Cards ===== */
+.card{background:var(--card-bg);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:16px}
+.card-title{font-size:16px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;color:var(--text-dark)}
+.card-title .icon{font-size:18px}
+
+/* Profile card */
+.profile-card{background:linear-gradient(135deg,#0D1B2A,#1565C0);color:#fff;border-radius:var(--radius);padding:20px;margin-bottom:16px;box-shadow:var(--shadow-lg)}
+.profile-card h2{font-size:18px;margin-bottom:12px}
+.profile-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.profile-tag{background:rgba(255,255,255,0.15);padding:4px 12px;border-radius:20px;font-size:12px}
+.profile-info{font-size:13px;line-height:1.8;opacity:0.9;margin-top:8px}
+
+/* ===== Tabs ===== */
+.tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--card-bg);border-radius:var(--radius);padding:4px;box-shadow:var(--shadow);overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab{padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text-gray);white-space:nowrap;transition:all .2s;border:none;background:none}
+.tab.active{background:var(--primary);color:#fff}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ===== Tables ===== */
+.table-wrap{overflow-x:auto;border-radius:var(--radius);background:var(--card-bg);box-shadow:var(--shadow)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#F5F7FA;padding:10px 8px;text-align:left;font-weight:600;color:var(--text-gray);white-space:nowrap;position:sticky;top:0}
+td{padding:10px 8px;border-top:1px solid #f0f0f0;vertical-align:middle}
+tr:active{background:#f8f9fa}
+
+/* ===== Badges ===== */
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-big{background:#E3F2FD;color:#1565C0}
+.badge-mid{background:#FFF3E0;color:#ED6C02}
+.badge-small{background:#F3E5F5;color:#7B1FA2}
+.badge-pending{background:#FFF3E0;color:#ED6C02}
+.badge-applied{background:#E8F5E9;color:#2E7D32}
+.badge-interview{background:#E3F2FD;color:#1565C0}
+.badge-offer{background:#FFEBEE;color:#C62828}
+.badge-rejected{background:#F5F5F5;color:#999}
+
+/* ===== Buttons ===== */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;text-decoration:none}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:active{background:var(--primary-dark)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text-dark)}
+.btn-outline:active{background:#f5f5f5}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-danger{background:#FFEBEE;color:var(--danger)}
+.btn-danger:active{background:#FFCDD2}
+
+/* ===== Forms ===== */
+.input,.select,textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:#fff;color:var(--text-dark)}
+.input:focus,.select:focus,textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-light)}
+textarea{resize:vertical;min-height:60px}
+.form-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.form-row>*{flex:1;min-width:120px}
+.form-group{margin-bottom:10px}
+.form-label{display:block;font-size:12px;color:var(--text-gray);margin-bottom:4px;font-weight:500}
+.add-form{background:#F5F7FA;border-radius:var(--radius);padding:14px;margin-bottom:16px}
+
+/* ===== Info list ===== */
+.info-list{list-style:none}
+.info-list li{padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:13px;line-height:1.7;display:flex;gap:8px;align-items:flex-start}
+.info-list li:last-child{border-bottom:none}
+.info-list li::before{content:'▸';color:var(--primary);flex-shrink:0;margin-top:2px}
+
+/* ===== Tip cards ===== */
+.tip-card{background:var(--primary-light);border-left:3px solid var(--primary);border-radius:8px;padding:14px;margin-bottom:12px}
+.tip-card h4{font-size:14px;font-weight:700;margin-bottom:6px;color:var(--primary-dark)}
+.tip-card p{font-size:13px;line-height:1.7;color:var(--text-dark)}
+.tip-card .tip-tag{display:inline-block;background:var(--primary);color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;margin-bottom:6px}
+
+/* ===== Positioning cards ===== */
+.pos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.pos-card{background:var(--card-bg);border:2px solid var(--border);border-radius:var(--radius);padding:14px;cursor:pointer;transition:all .2s;text-align:center}
+.pos-card:active{transform:scale(0.97)}
+.pos-card.selected{border-color:var(--primary);background:var(--primary-light)}
+.pos-card .pos-icon{font-size:28px;margin-bottom:8px}
+.pos-card h4{font-size:14px;font-weight:600;margin-bottom:4px}
+.pos-card p{font-size:11px;color:var(--text-gray);line-height:1.5}
+
+/* ===== Platform comparison ===== */
+.plat-compare th{font-size:12px}
+.plat-compare td{font-size:12px}
+
+/* ===== Stock cards ===== */
+.stock-card{background:var(--card-bg);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px}
+.stock-info{flex:1}
+.stock-name{font-size:14px;font-weight:600}
+.stock-code{font-size:12px;color:var(--text-gray)}
+.stock-reason{font-size:12px;color:var(--text-gray);margin-top:4px}
+
+/* ===== Reading cards ===== */
+.read-card{display:flex;gap:12px;padding:12px;background:var(--card-bg);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:10px}
+.read-icon{width:40px;height:40px;background:var(--primary-light);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.read-info{flex:1}
+.read-title{font-size:14px;font-weight:600}
+.read-author{font-size:12px;color:var(--text-gray)}
+.read-desc{font-size:12px;color:var(--text-gray);margin-top:4px;line-height:1.5}
+
+/* ===== AI Prompt box ===== */
+.ai-prompt{background:#F5F7FA;border:1px dashed var(--primary);border-radius:8px;padding:12px;margin-top:10px}
+.ai-prompt-label{font-size:11px;color:var(--primary);font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:4px}
+.ai-prompt-text{font-size:12px;line-height:1.6;color:var(--text-dark);background:#fff;padding:8px;border-radius:6px;cursor:pointer;transition:all .2s}
+.ai-prompt-text:active{background:var(--primary-light)}
+
+/* ===== Empty state ===== */
+.empty{text-align:center;padding:30px 16px;color:var(--text-gray);font-size:13px}
+
+/* ===== Settings ===== */
+.setting-item{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #f0f0f0}
+.setting-item:last-child{border-bottom:none}
+.setting-label{font-size:14px;font-weight:500}
+.setting-desc{font-size:12px;color:var(--text-gray);margin-top:2px}
+
+/* Overlay */
+.sidebar-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:99}
+
+/* ===== Responsive ===== */
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .sidebar.open~.sidebar-overlay{display:block}
+  .content{margin-left:0;padding-top:52px}
+  .mobile-header{display:flex}
+  .page{padding:12px}
+  .pos-grid{grid-template-columns:repeat(2,1fr)}
+  th,td{padding:8px 6px;font-size:12px}
+}
+
+/* Quick action bar */
+.quick-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.quick-stat{flex:1;min-width:80px;background:var(--card-bg);border-radius:var(--radius);padding:12px;text-align:center;box-shadow:var(--shadow)}
+.quick-stat .num{font-size:22px;font-weight:700;color:var(--primary)}
+.quick-stat .label{font-size:11px;color:var(--text-gray);margin-top:2px}
+
+/* Section divider */
+.section-divider{font-size:13px;font-weight:600;color:var(--text-gray);margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(13,27,42,0.9);color:#fff;padding:10px 24px;border-radius:24px;font-size:13px;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+
+/* Feed items */
+.feed-banner{display:flex;justify-content:space-between;align-items:center;background:var(--primary-light);border-radius:8px;padding:8px 14px;margin-bottom:14px;gap:8px}
+.feed-banner-date{font-size:12px;color:var(--primary-dark);font-weight:600}
+.feed-banner-btn{font-size:11px;color:var(--primary);cursor:pointer;border:1px solid var(--primary);background:#fff;padding:4px 10px;border-radius:6px;white-space:nowrap}
+.feed-item{background:var(--card-bg);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:10px}
+.feed-item-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
+.feed-item-title{font-size:14px;font-weight:600;flex:1}
+.feed-item-meta{font-size:11px;color:var(--text-gray);display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.feed-item-desc{font-size:13px;line-height:1.6;color:var(--text-dark);margin:4px 0 8px}
+.feed-link{display:inline-flex;align-items:center;gap:4px;color:var(--primary);font-size:12px;text-decoration:none;border:1px solid var(--primary);padding:3px 10px;border-radius:6px;margin-top:4px}
+.ext-link{color:var(--primary);text-decoration:none;font-weight:500}
+.ext-link:hover{text-decoration:underline}
+.feed-prompt{display:none}
+.market-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0}
+.market-row:last-child{border-bottom:none}
+.market-name{font-weight:600;font-size:13px}
+.market-price{font-size:14px;font-weight:700}
+.market-up{color:#D32F2F}
+.market-down{color:#2E7D32}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- Mobile Header -->
+  <header class="mobile-header">
+    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+    <span class="mobile-title">AI手机工作台</span>
+  </header>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <span class="logo-icon">⚡</span>
+        <span>AI工作台</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="nav-item active" data-page="qiuzhao" onclick="switchPage('qiuzhao')">
+        <span class="nav-icon">💼</span><span class="nav-label">秋招</span>
+      </a>
+      <a class="nav-item" data-page="gupiao" onclick="switchPage('gupiao')">
+        <span class="nav-icon">📈</span><span class="nav-label">股票</span>
+      </a>
+      <a class="nav-item" data-page="zimeiti" onclick="switchPage('zimeiti')">
+        <span class="nav-icon">🎬</span><span class="nav-label">自媒体</span>
+      </a>
+      <a class="nav-item" data-page="yuedu" onclick="switchPage('yuedu')">
+        <span class="nav-icon">📚</span><span class="nav-label">阅读</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <a class="nav-item" data-page="settings" onclick="switchPage('settings')">
+        <span class="nav-icon">⚙️</span><span class="nav-label">设置</span>
+      </a>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <!-- Content -->
+  <main class="content">
+    <!-- ========== 秋招 ========== -->
+    <div class="page active" id="page-qiuzhao">
+      <div class="profile-card">
+        <h2>💼 秋招作战中心</h2>
+        <div class="profile-info">
+          🎓 emlyon商学院 IMBD硕士 · 上海大学本科<br>
+          📍 目标城市：上海 · 行业：汽车 > 互联网 > 快消<br>
+          🎯 岗位：整合营销 / 品牌营销 / 海外营销 / 运营 / 大客户关系
+        </div>
+        <div class="profile-tags">
+          <span class="profile-tag">应届生</span>
+          <span class="profile-tag">双学位</span>
+          <span class="profile-tag">营销方向</span>
+          <span class="profile-tag">上海</span>
+        </div>
+      </div>
+
+      <div class="quick-bar" id="qiuzhaoStats"></div>
+
+      <div class="tabs" id="qiuzhaoTabs">
+        <button class="tab active" onclick="switchTab('qiuzhao','track')">📋 投递追踪</button>
+        <button class="tab" onclick="switchTab('qiuzhao','advice')">💡 求职建议</button>
+        <button class="tab" onclick="switchTab('qiuzhao','aitools')">🤖 AI工具</button>
+        <button class="tab" onclick="switchTab('qiuzhao','feed')">📡 秋招信息流</button>
+      </div>
+
+      <!-- 投递追踪 -->
+      <div class="tab-panel active" id="qiuzhao-track">
+        <div class="add-form">
+          <div class="form-row">
+            <input class="input" id="co-name" placeholder="公司名称">
+            <select class="select" id="co-level">
+              <option value="大厂">大厂</option>
+              <option value="中厂">中厂</option>
+              <option value="小厂">小厂(B轮)</option>
+            </select>
+            <select class="select" id="co-industry">
+              <option value="汽车">汽车</option>
+              <option value="互联网">互联网</option>
+              <option value="快消">快消</option>
+              <option value="科技">科技</option>
+              <option value="新消费">新消费</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <input class="input" id="co-position" placeholder="岗位名称">
+            <select class="select" id="co-status">
+              <option value="待投">待投</option>
+              <option value="已投">已投</option>
+              <option value="面试中">面试中</option>
+              <option value="已offer">已offer</option>
+              <option value="已拒绝">已拒绝</option>
+            </select>
+            <button class="btn btn-primary" onclick="addCompany()">+ 添加</button>
+          </div>
+        </div>
+        <div class="section-divider">投递列表</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>公司</th><th>级别</th><th>行业</th><th>岗位</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody id="companyList"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 求职建议 -->
+      <div class="tab-panel" id="qiuzhao-advice">
+        <div class="card">
+          <div class="card-title"><span class="icon">📝</span>简历优化核心原则</div>
+          <ul class="info-list">
+            <li><b>量化成果</b>：用数据说话（如"策划营销活动，曝光量50w+，转化率提升15%"）</li>
+            <li><b>STAR法则</b>：情境(Situation)-任务(Task)-行动(Action)-结果(Result)结构化描述每段经历</li>
+            <li><b>针对性修改</b>：每投一个岗位，微调关键词匹配JD要求</li>
+            <li><b>突出双学位优势</b>：emlyon国际化视野+上海大学本土资源，适合海外营销/跨国品牌岗位</li>
+            <li><b>营销专项</b>：突出整合营销、品牌策划、campaign执行等实操经验</li>
+            <li><b>简洁排版</b>：一页纸，重点突出，教育背景+实习+项目+技能</li>
+          </ul>
+          <div class="ai-prompt">
+            <div class="ai-prompt-label">🤖 AI简历优化提示词（点击复制）</div>
+            <div class="ai-prompt-text" onclick="copyText(this)">我是emlyon商学院IMBD硕士+上海大学本科应届生，正在应聘[公司]的[岗位名]岗位。请帮我优化以下简历，要求：1.用STAR法则量化成果 2.匹配JD关键词 3.突出emlyon国际化背景优势 4.控制在一页纸内。我的简历：[粘贴简历]</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">📅</span>秋招时间线</div>
+          <ul class="info-list">
+            <li><b>8月</b>：信息收集+简历定稿+作品集准备</li>
+            <li><b>9月</b>：大厂网申开放，批量投递（优先投dream company）</li>
+            <li><b>10月</b>：笔试+群面密集期，同步投递中厂小厂</li>
+            <li><b>11月</b>：专业面+HR面，部分offer发放</li>
+            <li><b>12月</b>：Offer对比决策，签约</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">🎤</span>面试准备清单</div>
+          <ul class="info-list">
+            <li><b>行业知识</b>：汽车行业趋势（新能源转型、智能化、出海）；互联网营销玩法（私域、种草、KOL）；快消品牌营销案例</li>
+            <li><b>营销案例分析</b>：掌握campaign拆解框架（目标-策略-创意-执行-效果）</li>
+            <li><b>行为面试</b>：宝洁八大问+3Why准备（为什么选你/为什么选我们/为什么选这个岗）</li>
+            <li><b>英文面试</b>：emlyon背景会被期望英文流利，准备英文自我介绍+营销案例分析</li>
+            <li><b>薪资谈判</b>：上海应届marketing岗薪资范围参考（大厂12-18k×16，中厂10-15k×14，小厂8-12k×13）</li>
+          </ul>
+          <div class="ai-prompt">
+            <div class="ai-prompt-label">🤖 AI模拟面试提示词</div>
+            <div class="ai-prompt-text" onclick="copyText(this)">请你扮演[公司名]的[岗位名]面试官，对我进行30分钟模拟面试。要求：1.先让我做1分钟自我介绍 2.针对我的简历提问3-5个问题 3.出一个营销案例分析题 4.最后给我反馈和改进建议。我的简历：[粘贴简历]</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">🎯</span>行业岗位匹配建议</div>
+          <div class="tip-card">
+            <span class="tip-tag">汽车行业</span>
+            <h4>推荐重点投递</h4>
+            <p>比亚迪、蔚来、理想、零跑等新能源车企的品牌营销、海外营销岗位。你的emlyon国际化背景非常适合车企出海战略岗位。新能源汽车正处于品牌建设期，对营销人才需求旺盛。</p>
+          </div>
+          <div class="tip-card">
+            <span class="tip-tag">互联网</span>
+            <h4>推荐重点投递</h4>
+            <p>字节、阿里、腾讯的整合营销/品牌营销岗位。小红书、B站等平台的营销策划岗位也值得关注，平台本身就在做营销，能学到最前沿的玩法。</p>
+          </div>
+          <div class="tip-card">
+            <span class="tip-tag">快消</span>
+            <h4>推荐重点投递</h4>
+            <p>宝洁、联合利华、欧莱雅等外企管培生项目（marketing track）。你的emlyon+上海大学背景在外企认可度高，且快消行业marketing体系最成熟。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI工具 -->
+      <div class="tab-panel" id="qiuzhao-aitools">
+        <div class="card">
+          <div class="card-title"><span class="icon">🤖</span>AI求职工具箱</div>
+          <div class="tip-card">
+            <span class="tip-tag">简历优化</span>
+            <h4>ChatGPT / Claude 简历优化</h4>
+            <p>将JD和简历一起发给AI，让它帮你：匹配关键词、量化成果、优化表述、检查语法。建议用Claude处理长文本，ChatGPT处理多轮对话。</p>
+          </div>
+          <div class="tip-card">
+            <span class="tip-tag">模拟面试</span>
+            <h4>AI模拟面试官</h4>
+            <p>用ChatGPT扮演目标公司面试官，进行文字/语音模拟面试。可设定公司、岗位、难度，练习后获取AI反馈。推荐配合语音输入使用，更接近真实面试。</p>
+          </div>
+          <div class="tip-card">
+            <span class="tip-tag">岗位匹配</span>
+            <h4>BOSS直聘 / 智联 AI推荐</h4>
+            <p>BOSS直聘的AI推荐算法会根据你的简历和浏览行为智能推荐岗位。建议完善在线简历，多与HR互动，提升推荐精准度。</p>
+          </div>
+          <div class="tip-card">
+            <span class="tip-tag">信息搜集</span>
+            <h4>AI帮你搜集公司面经</h4>
+            <p>用AI搜索目标公司的面经、薪资、团队文化。提示词：「搜索[公司]的[岗位]面试经验，整理最近半年的面试题目和候选人反馈」</p>
+          </div>
+          <div class="tip-card">
+            <span class="tip-tag">求职管理</span>
+            <h4>本工作台 = 你的求职管理器</h4>
+            <p>在「投递追踪」中记录每家公司状态，避免重复投递或遗漏。每次面试后及时更新状态，跟踪自己的投递进度和转化率。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 秋招信息流 -->
+      <div class="tab-panel" id="qiuzhao-feed">
+        <div class="feed-banner">
+          <span class="feed-banner-date">📡 最后更新：2026-09-06 | 每日刷新</span>
+          <button class="feed-banner-btn" onclick="copyText(document.getElementById('refresh-qz'))">🤖 用AI获取今日最新</button>
+        </div>
+        <div class="feed-prompt" id="refresh-qz">请搜索2026年9月上海地区最新秋招信息，重点关注：1.大厂（字节/阿里/腾讯/百度/京东/美团/拼多多）的营销/运营/品牌岗位 2.中厂（蔚来/理想/比亚迪/小红书/B站/米哈游）的营销岗位 3.快消外企（宝洁/联合利华/欧莱雅/雀巢/达能）的管培生项目。列出公司名、岗位、网申截止日期、投递链接。今天日期是2026年9月6日。</div>
+
+        <div class="section-divider">🚗 汽车行业（你的优先行业）</div>
+
+        <div class="feed-item">
+          <div class="feed-item-top">
+            <span class="feed-item-title">蔚来 — 营销Sparks校招（27届）</span>
+            <span class="badge badge-mid">中厂·汽车</span>
+          </div>
+          <div class="feed-item-meta">
+            <span>📍 上海/全国</span>
+            <span>💼 营销校招（专业不限）</span>
+            <span>⏰ 08/27 - 10/27</span>
+            <span>🕐 2天前更新</span>
+          </div>
+          <div class="feed-item-desc">27届秋招，营销Sparks项目，提供新星训练营+导师带教。你的emlyon国际化背景非常契合蔚来出海战略，营销岗专业不限但营销/商科更佳。</div>
+          <a href="https://campus.nio.com" target="_blank" class="feed-link">🔗 官网投递</a>
+          <a href="https://www.nowcoder.com/enterprise/961?recruitType=2" target="_blank" class="feed-link" style="margin-left:8px">📋 牛客详情</a>
+        </div>
+
+        <div class="feed-item">
+          <div class="feed-item-top">
+            <span class="feed-item-title">理想汽车 — 27届秋招</span>
+            <span class="badge badge-mid">中厂·汽车</span>
+          </div>
+          <div class="feed-item-meta">
+            <span>📍 上海/常州/北京/深圳</span>
+            <span>💼 多岗位（含运营）</span>
+            <span>⏰ 08/17 - 10/17</span>
+            <span>🕐 5天前更新</span>
+          </div>
+          <div class="feed-item-desc">27届秋招已开启，上海有岗位。理想汽车增长迅速，适合营销/运营方向候选人。网申截止10月17日，建议尽早投递。</div>
+          <a href="https://www.nowcoder.com/enterprise/12240/?channel=npJobTab&page=1&pageSource=5011&recruitType=2" target="_blank" class="feed-link">📋 牛客详情</a>
+        </div>
+
+        <div class="feed-item">
+          <div class="feed-item-top">
+            <span class="feed-item-title">比亚迪 — 26届秋招</span>
+            <span class="badge badge-big">大厂·汽车</span>
+          </div>
+          <div class="feed-item-meta">
+            <span>📍 上海/全国</span>
+            <span>💼 销售/营销类</span>
+            <span>⏰ 进行中</span>
+            <span>🕐 2天前更新</span>
+          </div>
+          <div class="feed-item-desc">26届秋招，比亚迪作为新能源销量龙头，销售/国际业务岗位与你的海外营销方向契合。境外院校毕业时间可至2026年12月。</div>
+          <a href="https://m.haitou.cc/position/361697291/" target="_blank" class="feed-link">📋 海投详情</a>
+        </div>
+
+        <div class="section-divider">🌐 互联网大厂</div>
+
+        <div class="feed-item">
+          <div class="feed-item-top">
+            <span class="feed-item-title">百度 — 26届秋招（全年开放）</span>
+            <span class="badge badge-big">大厂·互联网</span>
+          </div>
+          <div class="feed-item-meta">
+            <span>📍 上海/北京/深圳</span>
+            <span>💼 销售/综合/政企方向</span>
+            <span>⏰ 全年开放</span>
+          </div>
+          <div class="feed-item-desc">开放技术/产品/政企/销售/综合五大方向共74个细分职位。留学生背景在AI相关岗位有优势，营销类可关注销售和综合方向。越早投递机会越多。</div>
+          <a href="https://talent.baidu.com/jobs/campus" target="_blank" class="feed-link">🔗 官网投递</a>
+        </div>
+
+        <div class="feed-item">
+          <div class="feed-item-top">
+            <span class="feed-item-title">美团 — 27届秋招提前批</span>
+            <span class="badge badge-big">大厂·互联网</span>
+          </div>
+          <div class="feed-item-meta">
+            <span>📍 上海/北京</span>
+            <span>💼 商业分析/运营</span>
+            <span>⏰ 7月起</span>
+          </div>
+          <div class="feed-item-desc">美团7月9日开启提前批，覆盖技术、商业分析、运营方向。适合你的运营岗备选方向，建议关注商业分析类岗位。</div>
+          <a href="https://campus.meituan.com" target="_blank" class="feed-link">🔗 官网投递</a>
+        </div>
+
+        <div class="feed-item">
+          <div class="feed-item-top">
+            <span class="feed-item-title">京东 — 27届秋招提前批</span>
+            <span class="badge badge-big">大厂·互联网</span>
+          </div>
+          <div class="feed-item-meta">
+            <span>📍 上海/北京</span>
+            <span>💼 TET管培生</span>
+            <span>⏰ 7月起</span>
+          </div>
+          <div class="feed-item-desc">京东7月1日开启27届提前批，TET管培生项目同步招募。管培生项目轮岗机制适合应届生快速成长，营销方向可重点关注。</div>
+          <a href="https://campus.jd.com" target="_blank" class="feed-link">🔗 官网投递</a>
+        </div>
+
+        <div class="section-divider">🛒 快消/外企</div>
+
+        <div class="feed-item">
+          <div class="feed-item-top">
+            <span class="feed-item-title">雀巢 — 2026校招</span>
+            <span class="badge badge-big">大厂·快消</span>
+          </div>
+          <div class="feed-item-meta">
+            <span>📍 上海</span>
+            <span>💼 市场营销/管培生</span>
+            <span>⏰ 09/01开启</span>
+            <span>🕐 5天前发布</span>
+          </div>
+          <div class="feed-item-desc">雀巢2026校招已开启，上海有市场/营销、管理培训生岗位。外企管培生项目体系成熟，你的emlyon+上大背景在外企认可度高，强烈推荐投递。</div>
+          <a href="https://www.nowcoder.com/enterprise/2799" target="_blank" class="feed-link">📋 牛客详情</a>
+        </div>
+
+        <div class="feed-item">
+          <div class="feed-item-top">
+            <span class="feed-item-title">达能 — 市场营销管培生</span>
+            <span class="badge badge-big">大厂·快消</span>
+          </div>
+          <div class="feed-item-meta">
+            <span>📍 上海</span>
+            <span>💼 市场营销管培生-达能中国</span>
+            <span>⏰ 09/05发布</span>
+            <span>🕐 1天前发布</span>
+          </div>
+          <div class="feed-item-desc">达能中国市场营销管培生岗位昨日发布！快消管培生项目是marketing方向的黄金起点，建议尽快投递。另有医学市场管培生岗位可选。</div>
+          <a href="https://www.yingjiesheng.com/major/yingxiao/shanghai/list_1.html" target="_blank" class="feed-link">📋 应届生网</a>
+        </div>
+
+        <div class="section-divider">📋 其他值得关注</div>
+
+        <div class="feed-item">
+          <div class="feed-item-top">
+            <span class="feed-item-title">东方航空 — 营销储备岗</span>
+            <span class="badge badge-big">国企</span>
+          </div>
+          <div class="feed-item-meta">
+            <span>📍 上海</span>
+            <span>💼 营销储备</span>
+            <span>⏰ 截止09/24</span>
+          </div>
+          <div class="feed-item-desc">东航营销储备岗位招聘中，截止9月24日。国企稳定性+上海base+营销方向，适合作为保底选项。</div>
+          <a href="https://www.jrzp.com/job724920407.shtml" target="_blank" class="feed-link">📋 今日招聘</a>
+        </div>
+
+        <div class="feed-item">
+          <div class="feed-item-top">
+            <span class="feed-item-title">曼伦商贸 — 品牌市场岗</span>
+            <span class="badge badge-small">小厂·快消</span>
+          </div>
+          <div class="feed-item-meta">
+            <span>📍 上海徐汇</span>
+            <span>💼 品牌市场/电商运营</span>
+            <span>⏰ 进行中</span>
+          </div>
+          <div class="feed-item-desc">曼伦正拓展台湾及东南亚市场，品牌市场岗专业不限但市场营销更佳。正在拓展海外市场，你的国际化背景是加分项。</div>
+          <a href="https://career.ecnu.edu.cn/commonpage/JobInfDetail.aspx?sn=2020028629" target="_blank" class="feed-link">📋 华师大就业网</a>
+        </div>
+
+        <div class="feed-item">
+          <div class="feed-item-top">
+            <span class="feed-item-title">晨光文具 — 26届秋招</span>
+            <span class="badge badge-mid">中厂·快消</span>
+          </div>
+          <div class="feed-item-meta">
+            <span>📍 上海</span>
+            <span>💼 营销管理类</span>
+            <span>⏰ 11月-1月</span>
+          </div>
+          <div class="feed-item-desc">晨光文具26届秋招，营销管理类岗位含国内外销售、市场推广。上海本土企业，适合marketing方向。</div>
+          <a href="https://campus.niuqizp.com/schedule-hl8srZnLt.html" target="_blank" class="feed-link">📋 详情</a>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <div class="card-title"><span class="icon">💡</span>投递策略提醒</div>
+          <ul class="info-list">
+            <li><b>优先级</b>：汽车行业（蔚来/理想/比亚迪）> 快消外企管培生（雀巢/达能）> 互联网大厂（百度/京东/美团）</li>
+            <li><b>时间窗口</b>：蔚来/理想网申10月中截止，雀巢/达能刚开放，建议本周内完成投递</li>
+            <li><b>简历定制</b>：汽车行业投递突出emlyon国际化背景；快消投递突出营销专业知识；互联网投递突出数据分析和运营能力</li>
+            <li><b>每日刷新</b>：点击上方"🤖 用AI获取今日最新"按钮，复制提示词到ChatGPT获取当天最新岗位信息</li>
+          </ul>
+          <div class="ai-prompt">
+            <div class="ai-prompt-label">🤖 每日秋招刷新提示词（点击复制）</div>
+            <div class="ai-prompt-text" onclick="copyText(this)">今天是2026年9月[X]日，请搜索上海地区最新的秋招信息，重点关注：1.大厂互联网（字节/阿里/腾讯/百度/京东/美团/拼多多）的营销/运营/品牌岗位 2.汽车行业（蔚来/理想/比亚迪/零跑/哪吒）的营销和海外营销岗位 3.快消外企（宝洁/联合利华/欧莱雅/雀巢/达能）的管培生项目。请列出公司名、岗位名、网申截止日期、投递链接。只要B轮以上规模的公司。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 股票 ========== -->
+    <div class="page" id="page-gupiao">
+      <div class="profile-card" style="background:linear-gradient(135deg,#0D1B2A,#0D47A1)">
+        <h2>📈 投资情报站</h2>
+        <div class="profile-info">
+          大盘趋势 · 行业分析 · 个股追踪<br>
+          信息来源仅供参考，投资决策需独立判断
+        </div>
+      </div>
+
+      <div class="tabs" id="gupiaoTabs">
+        <button class="tab active" onclick="switchTab('gupiao','market')">📊 市场信息</button>
+        <button class="tab" onclick="switchTab('gupiao','opinion')">💬 观点集萃</button>
+        <button class="tab" onclick="switchTab('gupiao','watch')">⭐ 关注股票</button>
+      </div>
+
+      <!-- 市场信息 -->
+      <div class="tab-panel active" id="gupiao-market">
+        <div class="feed-banner">
+          <span class="feed-banner-date">📡 最后更新：2026-09-06 | 每日刷新</span>
+          <button class="feed-banner-btn" onclick="copyText(document.getElementById('refresh-gp'))">🤖 用AI获取今日行情</button>
+        </div>
+        <div class="feed-prompt" id="refresh-gp">今天是2026年9月6日，请帮我搜索今日A股和美股市场表现：1.上证指数/深证成指/创业板指最新点位和涨跌幅 2.今日成交额 3.领涨领跌板块 4.北向资金流向 5.美联储最新动态 6.美股三大指数表现 7.今日重要经济数据或政策事件。请给出具体数据。</div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">🇨🇳</span>A股市场（9月6日实时）</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>指数</th><th>最新点位</th><th>涨跌幅</th><th>今日关注</th></tr></thead>
+              <tbody>
+                <tr><td><b>上证指数</b></td><td>3930.12</td><td style="color:#D32F2F;font-weight:700">-0.30%</td><td>缩量震荡，距4000点关口一步之遥</td></tr>
+                <tr><td><b>深证成指</b></td><td>—</td><td style="color:#D32F2F">下跌</td><td>成长型企业走势偏弱</td></tr>
+                <tr><td><b>创业板指</b></td><td>—</td><td style="color:#D32F2F;font-weight:700">-2.36%</td><td>科技股回调，跌幅较大</td></tr>
+                <tr><td><b>北证50</b></td><td>—</td><td style="color:#D32F2F">-0.1%</td><td>微跌</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="tip-card" style="margin-top:12px">
+            <span class="tip-tag">今日要点</span>
+            <p>成交额约13375亿（较前日增加），超3600只个股下跌。市场进入持续<b>缩量震荡</b>格局，存量博弈特征明显。本周每经品牌100指数先抑后扬，周微跌0.43%报975点。领涨板块：<b>轨交设备、白酒、银行</b>。领跌板块：<b>科技股、创业板</b>。</p>
+          </div>
+          <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+            <a href="https://www.sse.com.cn/market/price/trends/" target="_blank" class="feed-link">🔗 上交所行情</a>
+            <a href="https://news.ifeng.com/c/8wCPQqPXpmY" target="_blank" class="feed-link">📋 每经品牌100分析</a>
+            <a href="https://sichuan.scol.com.cn/m/ggxw/202609/83317271.html" target="_blank" class="feed-link">📋 周观川股</a>
+          </div>
+          <div class="ai-prompt">
+            <div class="ai-prompt-label">🤖 AI市场分析提示词</div>
+            <div class="ai-prompt-text" onclick="copyText(this)">请帮我搜索今日（2026年9月X日）A股市场表现：1.上证/深证/创业板涨跌幅和点位 2.成交额变化 3.领涨领跌板块 4.北向资金流向 5.对后市的简要分析。请给出具体数字。</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">🇺🇸</span>美股市场（最新）</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>指数</th><th>涨跌幅</th><th>关注点</th></tr></thead>
+              <tbody>
+                <tr><td><b>道琼斯</b></td><td style="color:#2E7D32;font-weight:700">-0.51%</td><td>传统工业蓝筹回调</td></tr>
+                <tr><td><b>纳斯达克</b></td><td style="color:#2E7D32">-0.29%</td><td>科技股分化，存储板块大涨</td></tr>
+                <tr><td><b>标普500</b></td><td style="color:#2E7D32">-0.38%</td><td>美国经济晴雨表微跌</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="tip-card" style="margin-top:12px">
+            <span class="tip-tag">美股要点</span>
+            <p>三大指数集体收跌。<b>特斯拉跌近6%</b>；费城半导体指数涨超3%，存储板块大涨（闪迪+11%、SK海力士+8%、美光+6%）。光通信板块走高。特朗普称可能打击伊朗核设施。七部门部署AI、算力设施。</p>
+          </div>
+          <a href="http://m.toutiao.com/group/7681833338232619554/" target="_blank" class="feed-link" style="margin-top:8px">📋 每经早参全文</a>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">📰</span>本周重要经济政治事件</div>
+          <div class="feed-item" style="box-shadow:none;border:1px solid var(--border);margin-bottom:8px">
+            <div class="feed-item-top">
+              <span class="feed-item-title">美联储9月17日议息会议</span>
+              <span class="badge badge-pending">高影响</span>
+            </div>
+            <div class="feed-item-desc">美联储理事沃什8月28日发言偏鹰，CME美联储观察数据显示9月加息概率升至61.9%。9月17日FOMC会议是本月最重要的外部变量。加息预期可能扰动9月前期市场情绪，落地后风险偏好或回升。</div>
+            <a href="https://www.hlzq.com/upload/20260902/202609021788313497307.pdf" target="_blank" class="feed-link">📋 华龙证券9月金股报告</a>
+          </div>
+          <div class="feed-item" style="box-shadow:none;border:1px solid var(--border);margin-bottom:8px">
+            <div class="feed-item-top">
+              <span class="feed-item-title">美国8月非农数据公布</span>
+              <span class="badge badge-pending">高影响</span>
+            </div>
+            <div class="feed-item-desc">8月非农就业人口新增16.2万人，高于市场预期，失业率维持4.1%。数据公布后美国国债收益率走高，市场对美联储下一步货币政策预期随之调整。强于预期的就业数据可能支撑加息预期。</div>
+            <a href="https://sichuan.scol.com.cn/m/ggxw/202609/83317271.html" target="_blank" class="feed-link">📋 非农数据解读</a>
+          </div>
+          <div class="feed-item" style="box-shadow:none;border:1px solid var(--border);margin-bottom:8px">
+            <div class="feed-item-top">
+              <span class="feed-item-title">特朗普白宫离职潮 + 美联储独立性危机</span>
+              <span class="badge badge-pending">中影响</span>
+            </div>
+            <div class="feed-item-desc">距中期选举两个月，白宫新闻秘书、首席法律顾问、国家安全顾问等多位要员离职。美联储理事库克与联邦政府对簿公堂，特朗普试图罢免她。若成功，特朗普将控制美联储7席中的4席。中期选举年8-10月市场往往波动加大，10月前后可能触底后展开年末反弹。</div>
+            <a href="https://www.stcn.com/article/detail/3316862.html" target="_blank" class="feed-link">📋 美股三季度分析</a>
+            <a href="https://www.cnenergynews.cn/article/4SWPvqOGdqx" target="_blank" class="feed-link" style="margin-left:8px">📋 中期选举影响</a>
+          </div>
+          <div class="ai-prompt">
+            <div class="ai-prompt-label">🤖 AI事件分析提示词</div>
+            <div class="ai-prompt-text" onclick="copyText(this)">请分析以下经济/政治事件对股市的影响：[事件描述]。要求分析：1.对A股大盘的影响 2.利好/利空哪些板块 3.对美股的影响 4.短期vs中长期影响 5.历史类似事件参考</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">🔗</span>实时数据来源</div>
+          <ul class="info-list">
+            <li><a href="https://www.eastmoney.com" target="_blank" class="ext-link"><b>东方财富</b></a> - A股实时行情、资讯</li>
+            <li><a href="https://www.10jqka.com.cn" target="_blank" class="ext-link"><b>同花顺</b></a> - 数据全面、研报丰富</li>
+            <li><a href="https://xueqiu.com" target="_blank" class="ext-link"><b>雪球</b></a> - 投资者社区、个股讨论</li>
+            <li><a href="https://wallstreetcn.com" target="_blank" class="ext-link"><b>华尔街见闻</b></a> - 全球财经快讯</li>
+            <li><a href="https://finance.sina.com.cn" target="_blank" class="ext-link"><b>新浪财经</b></a> - 美股港股行情</li>
+            <li><a href="https://www.sse.com.cn/market/price/trends/" target="_blank" class="ext-link"><b>上交所</b></a> - 上证指数官方数据</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 观点集萃 -->
+      <div class="tab-panel" id="gupiao-opinion">
+        <div class="feed-banner">
+          <span class="feed-banner-date">📡 最后更新：2026-09-06 | 每日刷新</span>
+          <button class="feed-banner-btn" onclick="copyText(document.getElementById('refresh-gp2'))">🤖 用AI获取今日观点</button>
+        </div>
+        <div class="feed-prompt" id="refresh-gp2">今天是2026年9月6日，请搜索今日最新的股市分析观点：1.券商策略研报对A股9月走势的研判 2.知名投资人或分析师对当前市场的看法 3.对美联储9月议息会议的市场预期 4.对中美关系和中期选举影响的观点。请给出观点来源和具体内容。</div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">📊</span>今日市场观点</div>
+
+          <div class="feed-item">
+            <div class="feed-item-top">
+              <span class="feed-item-title">华龙证券：9月前期或有扰动，后期或风偏改善</span>
+              <span class="badge badge-interview">券商策略</span>
+            </div>
+            <div class="feed-item-meta"><span>📅 2026-09-02</span><span>🏢 华龙证券</span></div>
+            <div class="feed-item-desc">8月28日沃什发言偏鹰，市场解读加息预期升温，9月加息概率上升为61.9%。加息预期可能扰动9月前期市场情绪面偏于谨慎。<b>9月17日美联储议息会议不确定落地后，市场风险偏好或有回升</b>。9月配置建议关注不受加息扰动的防御性板块。</div>
+            <a href="https://www.hlzq.com/upload/20260902/202609021788313497307.pdf" target="_blank" class="feed-link">📋 阅读完整报告</a>
+          </div>
+
+          <div class="feed-item">
+            <div class="feed-item-top">
+              <span class="feed-item-title">9月A股不存在"黑九月"基础，震荡偏强是主基调</span>
+              <span class="badge badge-interview">市场分析</span>
+            </div>
+            <div class="feed-item-meta"><span>📅 2026-09</span><span>🏢 头条财经</span></div>
+            <div class="feed-item-desc">2026年9月A股不存在全面走熊、深度杀跌的"黑九月"基础，整体是结构性红盘行情。走势特征为<b>"先攻后守、震荡上行、分化加剧"</b>。历年黑九月需要三大致命条件：经济数据持续走弱、流动性收紧、估值高位泡沫，当前均不具备。</div>
+            <a href="http://m.toutiao.com/group/7680201755535295015/" target="_blank" class="feed-link">📋 阅读全文</a>
+          </div>
+
+          <div class="feed-item">
+            <div class="feed-item-top">
+              <span class="feed-item-title">美联储加息预期已兑现，A股短期或迎反弹</span>
+              <span class="badge badge-interview">市场分析</span>
+            </div>
+            <div class="feed-item-meta"><span>📅 2026-09</span><span>🏢 头条财经</span></div>
+            <div class="feed-item-desc">在美联储加息预期走高之前，股市已对美国长期国债利率走高、加息预期有了明显反应。<b>预期兑现后市场往往朝相反方向发展</b>。周四周五连续跳水更多是市场对加息预期的提前反应，结果出来后A股整体表现不会太差。</div>
+            <a href="http://m.toutiao.com/group/7682249100359877159/" target="_blank" class="feed-link">📋 阅读全文</a>
+          </div>
+
+          <div class="feed-item">
+            <div class="feed-item-top">
+              <span class="feed-item-title">中期选举年规律：10月前后触底，年末反弹</span>
+              <span class="badge badge-interview">机构观点</span>
+            </div>
+            <div class="feed-item-meta"><span>📅 2026-09</span><span>🏢 NDR/中国能源报</span></div>
+            <div class="feed-item-desc">NDR研报指出，美股在8月中旬至10月间可能迎来第二阶段整理，与典型中期选举年规律相符。<b>市场往往在选举前几周（约10月前后）触底，随后展开强劲的年末反弹</b>。情绪面指标出现极端读数，是逆向布局的信号。</div>
+            <a href="https://www.cnenergynews.cn/article/4SWPvqOGdqx" target="_blank" class="feed-link">📋 阅读全文</a>
+          </div>
+
+          <div class="feed-item">
+            <div class="feed-item-top">
+              <span class="feed-item-title">2026年9月A股发展趋势分析</span>
+              <span class="badge badge-interview">深度分析</span>
+            </div>
+            <div class="feed-item-meta"><span>📅 2026-09</span><span>🏢 杉林逸境</span></div>
+            <div class="feed-item-desc">房地产方面"金九银十"旺季来临，一线城市成交量稳步回升。海外环境方面，美联储加息扰动预计中旬落地。9月17日议息会议是本月最重要外部变量。综合来看，9月A股结构性机会大于风险。</div>
+            <a href="http://m.toutiao.com/group/7681471388586099252/" target="_blank" class="feed-link">📋 阅读全文</a>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">🎓</span>经典投资理念（常读常新）</div>
+          <div class="tip-card">
+            <span class="tip-tag">巴菲特</span>
+            <h4>价值投资核心</h4>
+            <p>「别人恐惧我贪婪，别人贪婪我恐惧」。关注企业内在价值，以合理价格买入优质公司并长期持有。核心看ROE、护城河、管理层质量。当前市场情绪面偏谨慎，符合巴菲特"恐惧时贪婪"的条件。</p>
+          </div>
+          <div class="tip-card">
+            <span class="tip-tag">查理·芒格</span>
+            <h4>多元思维模型</h4>
+            <p>用多学科视角分析投资：心理学、经济学、数学、物理学。「反过来想，总是反过来想」——先排除不该买的，再从剩下的选。<a href="https://category.dangdang.com/pg1-cp01.00.00.00.00.00-srsort_pubdate_desc-as8589934592%3A8589934716.html" target="_blank" class="ext-link">《何为道》段永平问答录</a>也值得阅读。</p>
+          </div>
+          <div class="tip-card">
+            <span class="tip-tag">霍华德·马克斯</span>
+            <h4>周期思维</h4>
+            <p>万物皆有周期。市场在乐观和悲观之间摆动，理解周期位置比预测方向更重要。「投资成功的关键不是买好东西，而是买得好」。当前9月加息预期扰动属周期中的正常波动。</p>
+          </div>
+          <div class="tip-card">
+            <span class="tip-tag">彼得·林奇</span>
+            <h4>生活中找牛股</h4>
+            <p>从日常生活中发现投资机会——你熟悉的产品、品牌、服务背后可能有优秀的上市公司。但需深入基本面验证。你的关注列表中比亚迪、蔚来等都是生活中能接触到的品牌。</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">📊</span>券商研报关注方向</div>
+          <ul class="info-list">
+            <li><b>中信证券</b>：策略研报对A股大势研判参考价值高</li>
+            <li><b>中金公司</b>：行业研究深度好，尤其消费/科技</li>
+            <li><b>华泰证券</b>：量化策略、金工研究较强</li>
+            <li><b>国泰君安</b>：宏观研究覆盖全面</li>
+            <li><b>天风证券</b>：新兴产业研究有特色</li>
+            <li><b>华龙证券</b>：本月金股报告对9月走势研判参考价值高</li>
+          </ul>
+          <p style="font-size:12px;color:var(--text-gray);margin-top:8px">注：券商研报可在<a href="https://www.eastmoney.com" target="_blank" class="ext-link">东方财富</a>/<a href="https://www.10jqka.com.cn" target="_blank" class="ext-link">同花顺</a>/慧博投研等平台免费查看摘要</p>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">💡</span>投资纪律提醒</div>
+          <ul class="info-list">
+            <li>不要追涨杀跌，制定交易计划并执行</li>
+            <li>分散投资，单一股票仓位不超过总仓位20%</li>
+            <li>用闲钱投资，不加杠杆</li>
+            <li>定期复盘，记录每笔交易的决策逻辑</li>
+            <li>市场恐慌时保持冷静，市场狂热时保持警惕</li>
+          </ul>
+          <div class="ai-prompt">
+            <div class="ai-prompt-label">🤖 AI每日观点刷新提示词</div>
+            <div class="ai-prompt-text" onclick="copyText(this)">今天是2026年9月[X]日，请搜索今日最新的股市分析观点：1.中信/中金/华泰等券商对A股的最新研判 2.知名投资人或分析师的最新观点 3.对美联储9月议息会议的最新预期变化 4.对当前市场风险和机会的评估。请给出观点来源和具体内容。</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 关注股票 -->
+      <div class="tab-panel" id="gupiao-watch">
+        <div class="add-form">
+          <div class="form-row">
+            <input class="input" id="st-name" placeholder="股票名称">
+            <input class="input" id="st-code" placeholder="代码">
+            <select class="select" id="st-market">
+              <option value="A股">A股</option>
+              <option value="港股">港股</option>
+              <option value="美股">美股</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <input class="input" id="st-reason" placeholder="关注理由（如：新能源龙头、Q3业绩超预期）">
+            <button class="btn btn-primary" onclick="addStock()">+ 添加</button>
+          </div>
+        </div>
+        <div class="section-divider">我的关注列表</div>
+        <div id="stockList"></div>
+        <div class="ai-prompt" style="margin-top:16px">
+          <div class="ai-prompt-label">🤖 AI个股分析提示词</div>
+          <div class="ai-prompt-text" onclick="copyText(this)">请帮我深入分析以下个股：[股票名称]。包括：1.最新财报解读（营收/利润/毛利率趋势）2.核心竞争力分析 3.行业景气度 4.主要风险点 5.未来1年催化剂 6.技术面简要判断</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 自媒体 ========== -->
+    <div class="page" id="page-zimeiti">
+      <div class="profile-card" style="background:linear-gradient(135deg,#0D1B2A,#1565C0)">
+        <h2>🎬 自媒体孵化器</h2>
+        <div class="profile-info">
+          定位探索 · 内容创作 · 变现规划<br>
+          从零开始，用AI辅助构建你的自媒体帝国
+        </div>
+      </div>
+
+      <div class="tabs" id="zimeitiTabs">
+        <button class="tab active" onclick="switchTab('zimeiti','position')">🎯 定位思考</button>
+        <button class="tab" onclick="switchTab('zimeiti','inspire')">💡 日常灵感</button>
+        <button class="tab" onclick="switchTab('zimeiti','knowledge')">📖 知识库</button>
+        <button class="tab" onclick="switchTab('zimeiti','platform')">📱 平台分析</button>
+      </div>
+
+      <!-- 定位思考 -->
+      <div class="tab-panel active" id="zimeiti-position">
+        <div class="card">
+          <div class="card-title"><span class="icon">🎯</span>选择你的赛道</div>
+          <p style="font-size:13px;color:var(--text-gray);margin-bottom:14px">点击选择你感兴趣的定位方向，结合自身优势做出选择</p>
+          <div class="pos-grid" id="posGrid"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">⚖️</span>定位决策框架</div>
+          <ul class="info-list">
+            <li><b>热情</b>：你能否持续产出这个领域的内容3个月以上？</li>
+            <li><b>能力</b>：你在这个领域是否有独特视角或专业优势？</li>
+            <li><b>市场</b>：这个赛道的粉丝规模和变现潜力如何？</li>
+            <li><b>竞争</b>：头部是否已固化？还有没有差异化空间？</li>
+            <li><b>资源</b>：你有没有相关人脉、渠道或供应链优势？</li>
+          </ul>
+          <div class="ai-prompt">
+            <div class="ai-prompt-label">🤖 AI定位分析提示词</div>
+            <div class="ai-prompt-text" onclick="copyText(this)">我想在[平台]做[赛道]方向的自媒体。我的背景：emlyon商学院硕士、上海大学本科、应届求职中、对汽车/营销/投资感兴趣。请分析：1.这个赛道是否适合我 2.我的差异化优势 3.建议的内容方向 4.起步3个月计划 5.变现路径</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 日常灵感 -->
+      <div class="tab-panel" id="zimeiti-inspire">
+        <div class="feed-banner">
+          <span class="feed-banner-date">📡 最后更新：2026-09-06 | 每日推送</span>
+          <button class="feed-banner-btn" onclick="copyText(document.getElementById('refresh-zmt'))">🤖 用AI获取今日推荐</button>
+        </div>
+        <div class="feed-prompt" id="refresh-zmt">今天是2026年9月6日，请搜索今日最新的自媒体运营干货文章和短视频趋势：1.抖音/小红书/B站最新算法变化 2.当前热门的自媒体赛道和变现方式 3.短视频爆款案例分析 4.各平台最新数据（日活、变现情况）5.新手做自媒体的建议。请给出文章标题、简介和链接。</div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">📰</span>今日推荐阅读</div>
+          <div class="feed-item">
+            <div class="feed-item-top">
+              <span class="feed-item-title">2026年短视频营销实战指南：从算法洞察到内容工厂</span>
+              <span class="badge badge-interview">干货</span>
+            </div>
+            <div class="feed-item-meta"><span>📅 2026</span><span>🏢 尊云科技</span></div>
+            <div class="feed-item-desc">深度拆解抖音推荐算法（赛马机制）：冷启动0-500播放，完播率是最核心指标。详细分析了爆款内容的4种情绪触发：爽感、共情、好奇、正能量。<b>信息密度决定完播率</b>——每秒提供足够的信息价值。</div>
+            <a href="https://zunyunkeji.com/digital-marketing/info_53_1101.html" target="_blank" class="feed-link">📋 阅读原文</a>
+          </div>
+          <div class="feed-item">
+            <div class="feed-item-top">
+              <span class="feed-item-title">2026短视频营销：从账号定位到投流优化全攻略</span>
+              <span class="badge badge-interview">干货</span>
+            </div>
+            <div class="feed-item-meta"><span>📅 2026</span><span>🏢 尊云科技</span></div>
+            <div class="feed-item-desc">完整的自媒体运营方法论：账号定位策略、内容选题框架、投流优化技巧。包含2026年选品核心原则：<b>拒绝低质低价、拒绝差评多</b>，平台严查劣质品会直接限流。</div>
+            <a href="https://www.zunyunkeji.com/digital-marketing/info_53_1110.html" target="_blank" class="feed-link">📋 阅读原文</a>
+          </div>
+          <div class="feed-item">
+            <div class="feed-item-top">
+              <span class="feed-item-title">破解短视频"爆一单凉十天"困局的稳定变现方案</span>
+              <span class="badge badge-interview">策略</span>
+            </div>
+            <div class="feed-item-meta"><span>📅 2026</span><span>🏢 CSDN</span></div>
+            <div class="feed-item-desc">数据驱动的选题决策方式，降低试错成本提高爆款概率。<b>矩阵化运营策略</b>：多账号协同分散单号风险，平滑整体收益曲线。适合想要长期稳定做自媒体的创作者。</div>
+            <a href="https://blog.csdn.net/qq_43206734/article/details/161862039" target="_blank" class="feed-link">📋 阅读原文</a>
+          </div>
+          <div class="feed-item">
+            <div class="feed-item-top">
+              <span class="feed-item-title">公私域联动：从流量到"留量"的转化密码</span>
+              <span class="badge badge-interview">案例</span>
+            </div>
+            <div class="feed-item-meta"><span>📅 2026</span><span>🏢 快手生态</span></div>
+            <div class="feed-item-desc">即胜体育APP快手公私域联动案例：<b>单日GMV突破8000万</b>。核心打法：短视频种草（每日15-20条产品视频）+ 粉丝沉淀至私域 + 持续复购。对想做带货变现的自媒体有参考价值。</div>
+            <a href="http://jwgl.uzz.edu.cn/wiki/short/SxLgWQUd/" target="_blank" class="feed-link">📋 阅读原文</a>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">💡</span>内容灵感库</div>
+          <div class="tip-card">
+            <span class="tip-tag">求职日记</span>
+            <h4>「emlyon硕士的秋招实录」</h4>
+            <p>记录每天投了什么公司、面试了什么、心情如何。真实、有共鸣，应届生群体会追更。可以做成系列：投递Day1→Day30，记录从焦虑到拿到offer的全过程。</p>
+          </div>
+          <div class="tip-card">
+            <span class="tip-tag">知识科普</span>
+            <h4>「用营销思维拆解生活」</h4>
+            <p>用营销专业知识拆解日常：超市货架排列逻辑、奶茶联名策略、汽车广告暗藏的心理暗示。专业+接地气=高互动。</p>
+          </div>
+          <div class="tip-card">
+            <span class="tip-tag">AI+内容</span>
+            <h4>「AI帮我做XX」系列</h4>
+            <p>用AI工具做各种事：AI写简历、AI模拟面试、AI做投资分析、AI画logo。展示过程+结果，踩中AI话题热度。</p>
+          </div>
+          <div class="tip-card">
+            <span class="tip-tag">对比测评</span>
+            <h4>「留学生vs国内生」「大厂vs小厂」</h4>
+            <p>制造对比冲突：不同视角看同一件事。你的emlyon+上大背景天然适合做这类内容。</p>
+          </div>
+          <div class="tip-card">
+            <span class="tip-tag">vlog</span>
+            <h4>「上海打工人的一天」</h4>
+            <p>日常vlog但要有信息量：早上看什么新闻、通勤听什么播客、午餐吃什么、下班学什么。生活方式+知识输出。</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">🔥</span>选题灵感生成器</div>
+          <p style="font-size:13px;color:var(--text-gray);margin-bottom:10px">用AI帮你批量生成选题</p>
+          <div class="ai-prompt">
+            <div class="ai-prompt-label">🤖 AI选题提示词</div>
+            <div class="ai-prompt-text" onclick="copyText(this)">我是做[赛道]方向的自媒体博主，目标受众是[人群]。请帮我生成20个爆款选题，要求：1.标题有钩子（制造好奇/争议/价值感）2.覆盖干货/故事/争议/热点4种类型 3.每个选题附带一句话内容梗概 4.按预期完播率排序</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">✍️</span>脚本写作辅助</div>
+          <div class="ai-prompt">
+            <div class="ai-prompt-label">🤖 AI脚本提示词</div>
+            <div class="ai-prompt-text" onclick="copyText(this)">请帮我写一个[时长]秒的短视频脚本，主题是[主题]。要求：1.前3秒有强钩子 2.中间节奏紧凑不拖沓 3.结尾有互动引导（评论/点赞/关注）4.口播+画面描述分离 5.语气自然不做作</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 知识库 -->
+      <div class="tab-panel" id="zimeiti-knowledge">
+        <div class="feed-banner">
+          <span class="feed-banner-date">📡 最后更新：2026-09-06</span>
+          <button class="feed-banner-btn" onclick="copyText(document.getElementById('refresh-zmt2'))">🤖 用AI获取今日知识</button>
+        </div>
+        <div class="feed-prompt" id="refresh-zmt2">今天是2026年9月6日，请搜索自媒体运营的最新知识干货：1.抖音/小红书最新算法规则变化 2.完播率、互动率等关键指标的最新标准 3.各平台变现方式的最新政策 4.2026年自媒体赛道竞争格局 5.新手起号的最新方法论。请给出具体数据和来源链接。</div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">📚</span>自媒体核心知识</div>
+          <div class="tip-card">
+            <span class="tip-tag">黄金3秒</span>
+            <h4>前3秒决定生死</h4>
+            <p>用户划走一个视频只需要不到1秒。前3秒必须给用户一个「看下去的理由」：悬念（"这件事99%的人不知道"）、冲突（"月薪3k vs 月薪3w"）、价值（"3步教你XX"）、视觉冲击。<a href="https://zunyunkeji.com/digital-marketing/info_53_1101.html" target="_blank" class="ext-link">详细了解算法机制</a></p>
+          </div>
+          <div class="tip-card">
+            <span class="tip-tag">完播率</span>
+            <h4>影响推荐的核心指标</h4>
+            <p>完播率=看完视频的人数/总播放量。抖音完播率>30%算及格，>50%算优秀。提升技巧：控制时长（15-30秒最佳）、节奏紧凑、<b>信息密度高</b>、避免无效铺垫。<a href="https://zunyunkeji.com/digital-marketing/info_53_1101.html" target="_blank" class="ext-link">深度解析</a></p>
+          </div>
+          <div class="tip-card">
+            <span class="tip-tag">互动率</span>
+            <h4>点赞+评论+转发+收藏</h4>
+            <p>互动率影响视频能否进入更大流量池。引导评论：抛出争议话题、留开放式结尾。引导收藏：干货类内容标注"建议收藏"。引导转发：内容有社交货币属性（让分享者显得有品位/有料）。</p>
+          </div>
+          <div class="tip-card">
+            <span class="tip-tag">涨粉转化</span>
+            <h4>从观看到关注</h4>
+            <p>用户关注你的原因：持续产出同类型有价值内容。建议：1.内容垂直不杂乱 2.主页简介清晰说明更新频率和价值 3.做系列内容给用户关注理由 4.置顶视频展示最佳作品。</p>
+          </div>
+          <div class="tip-card">
+            <span class="tip-tag">发布时间</span>
+            <h4>黄金发布时段</h4>
+            <p>抖音/小红书：午休12-13点、下班18-19点、睡前21-23点。B站：周末全天、工作日晚间。建议固定时间发布，培养粉丝预期。</p>
+          </div>
+          <div class="tip-card">
+            <span class="tip-tag">矩阵运营</span>
+            <h4>多账号分散风险</h4>
+            <p>单一账号面临封禁、限流风险，流量波动大。<b>矩阵化运营</b>通过多账号协同分散风险，平滑收益曲线。<a href="https://blog.csdn.net/qq_43206734/article/details/161862039" target="_blank" class="ext-link">学习矩阵策略</a></p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">💰</span>变现路径</div>
+          <ul class="info-list">
+            <li><b>广告变现</b>：星图/蒲公英平台接商单，1000粉丝即可开始接小广告</li>
+            <li><b>带货分销</b>：橱窗/小红书店铺，选品与内容领域强相关</li>
+            <li><b>知识付费</b>：课程/训练营/咨询，适合专业类博主</li>
+            <li><b>直播带货</b>：粉丝到一定量级后开启，转化率高于短视频</li>
+            <li><b>品牌合作</b>：深度合作定制内容，收入最高但需粉丝基础</li>
+            <li><b>私域引流</b>：将公域粉丝导流到微信，做社群/会员/复购</li>
+          </ul>
+          <div class="ai-prompt">
+            <div class="ai-prompt-label">🤖 AI变现规划提示词</div>
+            <div class="ai-prompt-text" onclick="copyText(this)">我的自媒体定位是[定位]，目前[平台]有[X]粉丝。请帮我制定变现计划：1.当前阶段适合哪种变现方式 2.达到多少粉丝可以解锁下一阶段 3.选品建议 4.定价策略 5.3个月变现目标</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 平台分析 -->
+      <div class="tab-panel" id="zimeiti-platform">
+        <div class="card">
+          <div class="card-title"><span class="icon">📱</span>各平台对比</div>
+          <div class="table-wrap">
+            <table class="plat-compare">
+              <thead><tr><th>平台</th><th>用户画像</th><th>内容特点</th><th>变现方式</th><th>竞争度</th></tr></thead>
+              <tbody>
+                <tr><td><b>抖音</b></td><td>全人群 日活6亿+</td><td>短视频 算法推荐</td><td>广告/带货/直播</td><td>⭐⭐⭐⭐⭐</td></tr>
+                <tr><td><b>小红书</b></td><td>女性70% 一二线</td><td>图文/视频 种草</td><td>带货/品牌合作</td><td>⭐⭐⭐⭐</td></tr>
+                <tr><td><b>B站</b></td><td>Z世代 知识型</td><td>中长视频 深度</td><td>创作激励/广告</td><td>⭐⭐⭐</td></tr>
+                <tr><td><b>视频号</b></td><td>30+ 社交链</td><td>短视频 社交推荐</td><td>直播带货/广告</td><td>⭐⭐⭐</td></tr>
+                <tr><td><b>快手</b></td><td>下沉市场</td><td>短视频 老铁文化</td><td>直播带货/广告</td><td>⭐⭐⭐</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">🏆</span>各赛道竞争与变现分析</div>
+          <div class="tip-card">
+            <span class="tip-tag">好物分享</span>
+            <h4>门槛低 竞争激烈 变现直接</h4>
+            <p>适合小红书起步。优势：变现路径清晰（带货佣金5-20%）。劣势：同质化严重。建议：选垂直细分类目（如"留学好物""职场穿搭"）做差异化。</p>
+          </div>
+          <div class="tip-card">
+            <span class="tip-tag">知识/职场</span>
+            <h4>门槛中 竞争适中 变现天花板高</h4>
+            <p>你的emlyon+求职经历天然适合。优势：粉丝粘性高，可做知识付费。劣势：产出要求深度。建议：B站+小红书双开，长视频做深度、短视频引流。</p>
+          </div>
+          <div class="tip-card">
+            <span class="tip-tag">AI内容</span>
+            <h4>趋势赛道 当前红利期</h4>
+            <p>2024-2026 AI话题热度高。优势：蹭热点流量大。劣势：同质化快。建议：结合自身专业（AI+营销/AI+投资），做"AI工具测评+实操教程"方向。</p>
+          </div>
+          <div class="tip-card">
+            <span class="tip-tag">求职日记</span>
+            <h4>低门槛 强共鸣 时间窗口有限</h4>
+            <p>秋招季(9-12月)流量高峰。优势：真实感强，应届生群体共鸣。劣势：内容深度有限，过季后流量下降。建议：求职结束后转型为"职场新人"赛道延续。</p>
+          </div>
+          <div class="tip-card">
+            <span class="tip-tag">健身/篮球</span>
+            <h4>红海赛道 需要差异化</h4>
+            <p>竞争已白热化。优势：粉丝粘性极高。劣势：变现路径偏窄（补剂/装备）。建议：做"碎片化健身"或"职场人健身"等垂直细分，降低竞争压力。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 阅读 ========== -->
+    <div class="page" id="page-yuedu">
+      <div class="profile-card" style="background:linear-gradient(135deg,#0D1B2A,#0D47A1)">
+        <h2>📚 阅读充电站</h2>
+        <div class="profile-info">
+          求职赋能 · 投资智慧 · 文化底蕴<br>
+          不定期推送，持续充实自我
+        </div>
+      </div>
+
+      <div class="tabs" id="yueduTabs">
+        <button class="tab active" onclick="switchTab('yuedu','job')">💼 求职成长</button>
+        <button class="tab" onclick="switchTab('yuedu','invest')">💰 投资理财</button>
+        <button class="tab" onclick="switchTab('yuedu','culture')">🏛️ 文化底蕴</button>
+        <button class="tab" onclick="switchTab('yuedu','tracker')">✅ 阅读追踪</button>
+      </div>
+
+      <!-- 求职成长 -->
+      <div class="tab-panel active" id="yuedu-job">
+        <div class="feed-banner">
+          <span class="feed-banner-date">📡 最后更新：2026-09-06</span>
+          <button class="feed-banner-btn" onclick="copyText(document.getElementById('refresh-yd1'))">🤖 用AI获取今日推荐</button>
+        </div>
+        <div class="feed-prompt" id="refresh-yd1">今天是2026年9月6日，请推荐5本对营销岗位求职有帮助的最新书籍或文章，要求：1.与整合营销/品牌营销/海外营销相关 2.适合emlyon商学院硕士+上海大学本科背景 3.包含出版日期和购买链接 4.简要说明每本书对求职的具体帮助。</div>
+        <div id="readJobList"></div>
+        <div class="ai-prompt">
+          <div class="ai-prompt-label">🤖 AI读书辅助提示词</div>
+          <div class="ai-prompt-text" onclick="copyText(this)">请用300字总结《[书名]》的核心观点，并告诉我作为一个求职营销岗位的应届生，如何将书中理念运用到面试和工作中。</div>
+        </div>
+      </div>
+
+      <!-- 投资理财 -->
+      <div class="tab-panel" id="yuedu-invest">
+        <div class="feed-banner">
+          <span class="feed-banner-date">📡 最后更新：2026-09-06</span>
+          <button class="feed-banner-btn" onclick="copyText(document.getElementById('refresh-yd2'))">🤖 用AI获取今日推荐</button>
+        </div>
+        <div class="feed-prompt" id="refresh-yd2">今天是2026年9月6日，请推荐5本最新的投资理财书籍或文章，要求：1.适合新手到进阶投资者 2.涵盖A股/美股投资 3.包含2026年新书 4.结合当前美联储加息、中期选举等市场环境 5.给出购买链接和简要推荐理由。</div>
+        <div id="readInvestList"></div>
+        <div class="ai-prompt">
+          <div class="ai-prompt-label">🤖 AI读书辅助提示词</div>
+          <div class="ai-prompt-text" onclick="copyText(this)">请总结《[书名]》的投资核心理念，提取3个可执行的投资原则，并结合当前市场环境给出具体应用建议。</div>
+        </div>
+      </div>
+
+      <!-- 文化底蕴 -->
+      <div class="tab-panel" id="yuedu-culture">
+        <div class="feed-banner">
+          <span class="feed-banner-date">📡 最后更新：2026-09-06</span>
+          <button class="feed-banner-btn" onclick="copyText(document.getElementById('refresh-yd3'))">🤖 用AI获取今日推荐</button>
+        </div>
+        <div class="feed-prompt" id="refresh-yd3">今天是2026年9月6日，请推荐5本能充实文化底蕴的书籍或文章，要求：1.涵盖历史/哲学/心理学/社会学 2.对求职营销岗位和投资理财有间接帮助 3.包含2026年新书 4.给出购买链接和简要推荐理由 5.难度适中，适合研究生阅读。</div>
+        <div id="readCultureList"></div>
+        <div class="ai-prompt">
+          <div class="ai-prompt-label">🤖 AI读书辅助提示词</div>
+          <div class="ai-prompt-text" onclick="copyText(this)">请用通俗易懂的语言总结《[书名]》的核心思想，提取3个对我个人成长有启发的观点，并举例说明如何在日常生活中运用。</div>
+        </div>
+      </div>
+
+      <!-- 阅读追踪 -->
+      <div class="tab-panel" id="yuedu-tracker">
+        <div class="add-form">
+          <div class="form-row">
+            <input class="input" id="rd-title" placeholder="书名/文章名">
+            <input class="input" id="rd-author" placeholder="作者">
+            <select class="select" id="rd-category">
+              <option value="求职成长">求职成长</option>
+              <option value="投资理财">投资理财</option>
+              <option value="文化底蕴">文化底蕴</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <select class="select" id="rd-status">
+              <option value="未读">未读</option>
+              <option value="在读">在读</option>
+              <option value="已读">已读</option>
+            </select>
+            <input class="input" id="rd-note" placeholder="一句话笔记（选填）">
+            <button class="btn btn-primary" onclick="addReading()">+ 添加</button>
+          </div>
+        </div>
+        <div class="section-divider">我的阅读清单</div>
+        <div id="readingList"></div>
+      </div>
+    </div>
+
+    <!-- ========== 设置 ========== -->
+    <div class="page" id="page-settings">
+      <div class="card">
+        <div class="card-title"><span class="icon">📱</span>添加到手机桌面</div>
+        <div class="setting-item">
+          <div>
+            <div class="setting-label">iPhone (iOS)</div>
+            <div class="setting-desc">用Safari打开本页面 → 底部分享按钮 → 添加到主屏幕</div>
+          </div>
+        </div>
+        <div class="setting-item">
+          <div>
+            <div class="setting-label">Android</div>
+            <div class="setting-desc">用Chrome打开 → 右上角菜单 → 添加到主屏幕</div>
+          </div>
+        </div>
+        <div class="setting-item">
+          <div>
+            <div class="setting-label">部署方式</div>
+            <div class="setting-desc">将 index.html + manifest.json + icon.svg 上传到任意HTTPS服务器（如 GitHub Pages / Netlify / Vercel），用手机浏览器打开即可添加为App</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">💾</span>数据管理</div>
+        <div class="setting-item">
+          <div>
+            <div class="setting-label">导出数据</div>
+            <div class="setting-desc">备份你的所有数据为JSON文件</div>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="exportData()">导出</button>
+        </div>
+        <div class="setting-item">
+          <div>
+            <div class="setting-label">导入数据</div>
+            <div class="setting-desc">从JSON文件恢复数据</div>
+          </div>
+          <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+          <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">导入</button>
+        </div>
+        <div class="setting-item">
+          <div>
+            <div class="setting-label">清空数据</div>
+            <div class="setting-desc">删除所有自定义数据，恢复初始状态</div>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="clearData()">清空</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">ℹ️</span>关于</div>
+        <p style="font-size:13px;line-height:1.8;color:var(--text-gray)">
+          AI手机工作台 v1.0<br>
+          一个集求职、投资、自媒体、阅读于一体的个人成长工具。<br>
+          所有数据存储在本地浏览器中，无需账号、无需联网。<br>
+          结合AI工具（ChatGPT/Claude等）使用效果更佳。
+        </p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== Initial Data =====
+const defaultData = {
+  companies: [
+    {id:1,name:'字节跳动',level:'大厂',industry:'互联网',position:'整合营销',status:'待投'},
+    {id:2,name:'阿里巴巴',level:'大厂',industry:'互联网',position:'海外营销',status:'待投'},
+    {id:3,name:'腾讯',level:'大厂',industry:'互联网',position:'品牌营销',status:'待投'},
+    {id:4,name:'拼多多',level:'大厂',industry:'互联网',position:'运营',status:'待投'},
+    {id:5,name:'美团',level:'大厂',industry:'互联网',position:'大客户关系',status:'待投'},
+    {id:6,name:'华为',level:'大厂',industry:'科技',position:'海外营销',status:'待投'},
+    {id:7,name:'京东',level:'大厂',industry:'互联网',position:'品牌营销',status:'待投'},
+    {id:8,name:'比亚迪',level:'中厂',industry:'汽车',position:'品牌营销',status:'待投'},
+    {id:9,name:'蔚来',level:'中厂',industry:'汽车',position:'用户运营',status:'待投'},
+    {id:10,name:'理想汽车',level:'中厂',industry:'汽车',position:'整合营销',status:'待投'},
+    {id:11,name:'小红书',level:'中厂',industry:'互联网',position:'营销策划',status:'待投'},
+    {id:12,name:'哔哩哔哩',level:'中厂',industry:'互联网',position:'品牌营销',status:'待投'},
+    {id:13,name:'米哈游',level:'中厂',industry:'互联网',position:'海外营销',status:'待投'},
+    {id:14,name:'零跑汽车',level:'小厂',industry:'汽车',position:'品牌营销',status:'待投'},
+    {id:15,name:'哪吒汽车',level:'小厂',industry:'汽车',position:'海外营销',status:'待投'},
+    {id:16,name:'完美日记',level:'小厂',industry:'快消',position:'品牌营销',status:'待投'},
+    {id:17,name:'花西子',level:'小厂',industry:'快消',position:'海外营销',status:'待投'},
+    {id:18,name:'元气森林',level:'小厂',industry:'快消',position:'整合营销',status:'待投'},
+  ],
+  watchlist: [
+    {id:1,code:'002594',name:'比亚迪',market:'A股',reason:'新能源汽车龙头，海外扩张加速'},
+    {id:2,code:'600519',name:'贵州茅台',market:'A股',reason:'消费白马，长期价值投资标的'},
+    {id:3,code:'300750',name:'宁德时代',market:'A股',reason:'动力电池全球龙头，关注市占率变化'},
+    {id:4,code:'TSLA',name:'特斯拉',market:'美股',reason:'AI+自动驾驶+机器人，科技标杆'},
+    {id:5,code:'AAPL',name:'苹果',market:'美股',reason:'AI终端入口，服务收入增长'},
+  ],
+  readings: [
+    {id:1,title:'定位',author:'特劳特',category:'求职成长',status:'未读',note:'营销人必读，理解心智占位',link:'https://search.dangdang.com/?key=%B6%A8%CE%BB+%CC%D8%C0%CD%CC%D8'},
+    {id:2,title:'营销管理',author:'科特勒',category:'求职成长',status:'未读',note:'营销学圣经，体系化理解营销',link:'https://search.dangdang.com/?key=%D3%AA%CF%FA%B9%DC%C0%ED+%BF%C6%CD%D9%C0%D5'},
+    {id:3,title:'影响力',author:'西奥迪尼',category:'求职成长',status:'未读',note:'6大说服原则，面试也用得上',link:'https://search.dangdang.com/?key=%D3%B0%CF%EC%C1%A6+%CE%F7%B0%C2%B5%CF%C4%E1'},
+    {id:4,title:'爆款文案',author:'关键明',category:'求职成长',status:'未读',note:'文案技巧，营销基本功',link:'https://search.dangdang.com/?key=%B1%AC%BF%EE%CE%C4%B0%B8'},
+    {id:5,title:'增长黑客',author:'肖恩·埃利斯',category:'求职成长',status:'未读',note:'互联网增长方法论',link:'https://search.dangdang.com/?key=%D4%F6%B3%A4%BA%DA%BF%CD'},
+    {id:6,title:'新媒体营销万能秘籍',author:'郭永亮',category:'求职成长',status:'未读',note:'2026新媒体趋势，内容创作+平台运营+用户转化',link:'https://m.thepaper.cn/newsDetail_forward_32317936'},
+    {id:7,title:'穷查理宝典',author:'查理·芒格',category:'投资理财',status:'未读',note:'多元思维模型，投资与人生智慧',link:'https://search.dangdang.com/?key=%C7%EE%B2%E9%C0%ED%B1%A6%B5%E4'},
+    {id:8,title:'聪明的投资者',author:'格雷厄姆',category:'投资理财',status:'未读',note:'价值投资奠基之作',link:'https://search.dangdang.com/?key=%B4%CF%C3%F7%B5%C4%CD%B6%D7%DF%D5%DF'},
+    {id:9,title:'投资的艺术',author:'申文冠',category:'投资理财',status:'未读',note:'2026年9月新书，格兰投研创始人，看懂市场用对策略',link:'https://category.dangdang.com/pg1-cp01.00.00.00.00.00-srsort_pubdate_desc-as8589934592%3A8589934716.html'},
+    {id:10,title:'何为道',author:'段永平',category:'投资理财',status:'未读',note:'段永平问答录，大道著名企业家投资家',link:'https://category.dangdang.com/pg1-cp01.00.00.00.00.00-srsort_pubdate_desc-as8589934592%3A8589934716.html'},
+    {id:11,title:'周期',author:'霍华德·马克斯',category:'投资理财',status:'未读',note:'理解市场周期，投资时机判断',link:'https://search.dangdang.com/?key=%D6%DC%C6%DA+%BB%F4%BB%AA%C2%E5%C2%ED%BF%CB%CB%B9'},
+    {id:12,title:'股票作手回忆录',author:'利弗莫尔',category:'投资理财',status:'未读',note:'交易心理经典',link:'https://search.dangdang.com/?key=%B9%C9%C6%B1%D7%F6%CA%D6%BB%D8%D2%E4%C2%BC'},
+    {id:13,title:'人类简史',author:'尤瓦尔·赫拉利',category:'文化底蕴',status:'未读',note:'宏阔视角看人类文明演进',link:'https://search.dangdang.com/?key=%C8%CB%C0%E0%BC%F2%CA%B7'},
+    {id:14,title:'思考，快与慢',author:'卡尼曼',category:'文化底蕴',status:'未读',note:'行为经济学，理解决策偏差',link:'https://search.dangdang.com/?key=%CB%BC%BF%BC%BF%EC%D3%EB%C2%FD'},
+    {id:15,title:'被讨厌的勇气',author:'岸见一郎',category:'文化底蕴',status:'未读',note:'阿德勒心理学，人生回报率最高的书之一',link:'https://view.inews.qq.com/a/20260805A058V300'},
+    {id:16,title:'吾辈如神',author:'戴曼迪斯',category:'文化底蕴',status:'未读',note:'AI时代的人类思维升级，奇点大学创始人',link:'http://paper.cnstock.com/html/2026-06/29/content_2236576.htm'},
+    {id:17,title:'万历十五年',author:'黄仁宇',category:'文化底蕴',status:'未读',note:'大历史观看中国',link:'https://search.dangdang.com/?key=%CD%F2%C0%FA%CA%AE%CE%E5%C4%EA'},
+    {id:18,title:'乌合之众',author:'勒庞',category:'文化底蕴',status:'未读',note:'群体心理学，营销也用得上',link:'https://search.dangdang.com/?key=%CE%DA%BA%CF%D6%AE%D6%DA'},
+  ],
+  mediaPosition: null,
+  dataVersion: 2,
+};
+
+let appData = JSON.parse(JSON.stringify(defaultData));
+
+// ===== Load/Save =====
+function loadData(){
+  try{
+    const s=localStorage.getItem('aiWorkbench');
+    if(s){
+      const p=JSON.parse(s);
+      if(p.dataVersion===defaultData.dataVersion){
+        appData={...JSON.parse(JSON.stringify(defaultData)),...p};
+      }else{
+        // Version changed: keep user's custom data, use new defaults for readings
+        appData=JSON.parse(JSON.stringify(defaultData));
+        if(p.companies)appData.companies=p.companies;
+        if(p.watchlist)appData.watchlist=p.watchlist;
+        if(p.mediaPosition)appData.mediaPosition=p.mediaPosition;
+        saveData();
+      }
+    }
+  }catch(e){console.warn('load failed',e)}
+}
+function saveData(){
+  try{localStorage.setItem('aiWorkbench',JSON.stringify(appData))}catch(e){console.warn('save failed',e)}
+}
+
+// ===== Navigation =====
+function switchPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelectorAll('.sidebar .nav-item').forEach(n=>{
+    n.classList.toggle('active',n.dataset.page===name);
+  });
+  if(window.innerWidth<=768)closeSidebar();
+  document.querySelector('.content').scrollTop=0;
+}
+
+function switchTab(page,tab){
+  const tabs=document.getElementById(page+'Tabs');
+  if(!tabs)return;
+  tabs.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('#page-'+page+' .tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById(page+'-'+tab).classList.add('active');
+}
+
+// ===== Sidebar =====
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open')}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open')}
+
+// ===== Companies =====
+function renderCompanies(){
+  const list=document.getElementById('companyList');
+  if(!list)return;
+  const stats={total:appData.companies.length,pending:0,applied:0,interview:0,offer:0};
+  appData.companies.forEach(c=>{stats[c.status]=(stats[c.status]||0)+1});
+
+  const sb=document.getElementById('qiuzhaoStats');
+  if(sb){
+    sb.innerHTML=`
+      <div class="quick-stat"><div class="num">${stats.total}</div><div class="label">总投递</div></div>
+      <div class="quick-stat"><div class="num">${stats['待投']||0}</div><div class="label">待投</div></div>
+      <div class="quick-stat"><div class="num">${stats['已投']||0}</div><div class="label">已投</div></div>
+      <div class="quick-stat"><div class="num">${stats['面试中']||0}</div><div class="label">面试中</div></div>
+      <div class="quick-stat"><div class="num">${stats['已offer']||0}</div><div class="label">已offer</div></div>
+    `;
+  }
+
+  if(appData.companies.length===0){
+    list.innerHTML='<tr><td colspan="6" class="empty">暂无投递记录，点击上方添加</td></tr>';
+    return;
+  }
+
+  list.innerHTML=appData.companies.map(c=>{
+    const levelBadge=c.level==='大厂'?'badge-big':c.level==='中厂'?'badge-mid':'badge-small';
+    const statusBadge='badge-'+(
+      c.status==='待投'?'pending':c.status==='已投'?'applied':c.status==='面试中'?'interview':c.status==='已offer'?'offer':'rejected'
+    );
+    return `<tr>
+      <td><b>${c.name}</b></td>
+      <td><span class="badge ${levelBadge}">${c.level}</span></td>
+      <td>${c.industry}</td>
+      <td>${c.position}</td>
+      <td>
+        <select class="select btn-sm" style="padding:2px 6px;font-size:11px;width:auto" onchange="updateCompanyStatus(${c.id},this.value)">
+          <option ${c.status==='待投'?'selected':''}>待投</option>
+          <option ${c.status==='已投'?'selected':''}>已投</option>
+          <option ${c.status==='面试中'?'selected':''}>面试中</option>
+          <option ${c.status==='已offer'?'selected':''}>已offer</option>
+          <option ${c.status==='已拒绝'?'selected':''}>已拒绝</option>
+        </select>
+      </td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteCompany(${c.id})">删除</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function addCompany(){
+  const name=document.getElementById('co-name').value.trim();
+  if(!name){showToast('请输入公司名称');return}
+  const c={
+    id:Date.now(),
+    name,
+    level:document.getElementById('co-level').value,
+    industry:document.getElementById('co-industry').value,
+    position:document.getElementById('co-position').value||'未填写',
+    status:document.getElementById('co-status').value,
+  };
+  appData.companies.unshift(c);
+  saveData();renderCompanies();
+  document.getElementById('co-name').value='';
+  document.getElementById('co-position').value='';
+  showToast('已添加：'+name);
+}
+
+function deleteCompany(id){
+  appData.companies=appData.companies.filter(c=>c.id!==id);
+  saveData();renderCompanies();
+  showToast('已删除');
+}
+
+function updateCompanyStatus(id,status){
+  const c=appData.companies.find(c=>c.id===id);
+  if(c){c.status=status;saveData();renderCompanies();showToast('状态更新：'+status)}
+}
+
+// ===== Stocks =====
+function renderStocks(){
+  const list=document.getElementById('stockList');
+  if(!list)return;
+  if(appData.watchlist.length===0){
+    list.innerHTML='<div class="empty">暂无关注股票，点击上方添加</div>';
+    return;
+  }
+  list.innerHTML=appData.watchlist.map(s=>`
+    <div class="stock-card">
+      <div style="font-size:24px">${s.market==='A股'?'🇨🇳':s.market==='美股'?'🇺🇸':'🇭🇰'}</div>
+      <div class="stock-info">
+        <div class="stock-name">${s.name} <span class="stock-code">${s.code}</span></div>
+        <div class="stock-reason">${s.reason||'—'}</div>
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="deleteStock(${s.id})">删除</button>
+    </div>
+  `).join('');
+}
+
+function addStock(){
+  const name=document.getElementById('st-name').value.trim();
+  if(!name){showToast('请输入股票名称');return}
+  const s={
+    id:Date.now(),
+    name,
+    code:document.getElementById('st-code').value.trim(),
+    market:document.getElementById('st-market').value,
+    reason:document.getElementById('st-reason').value.trim(),
+  };
+  appData.watchlist.unshift(s);
+  saveData();renderStocks();
+  document.getElementById('st-name').value='';
+  document.getElementById('st-code').value='';
+  document.getElementById('st-reason').value='';
+  showToast('已添加：'+name);
+}
+
+function deleteStock(id){
+  appData.watchlist=appData.watchlist.filter(s=>s.id!==id);
+  saveData();renderStocks();
+  showToast('已删除');
+}
+
+// ===== Self-media =====
+const positions=[
+  {icon:'🛍️',name:'好物分享',desc:'门槛低 变现快 同质化高'},
+  {icon:'👗',name:'服装穿搭',desc:'视觉导向 适合小红书 品牌合作多'},
+  {icon:'🍽️',name:'探店',desc:'本地流量 需要地域优势'},
+  {icon:'🎭',name:'剧情短剧',desc:'创意门槛高 爆发力强'},
+  {icon:'🤖',name:'AI视频',desc:'趋势赛道 当前红利期'},
+  {icon:'📝',name:'求职日记',desc:'强共鸣 时间窗口有限'},
+  {icon:'💪',name:'健身减肥',desc:'粉丝粘性高 红海赛道'},
+  {icon:'🏀',name:'篮球',desc:'兴趣导向 变现路径窄'},
+  {icon:'🧠',name:'知识科普',desc:'粉丝粘性高 可知识付费'},
+  {icon:'💻',name:'职场成长',desc:'你的背景天然适合'},
+];
+
+function renderPositions(){
+  const grid=document.getElementById('posGrid');
+  if(!grid)return;
+  grid.innerHTML=positions.map(p=>`
+    <div class="pos-card ${appData.mediaPosition===p.name?'selected':''}" onclick="selectPosition('${p.name}')">
+      <div class="pos-icon">${p.icon}</div>
+      <h4>${p.name}</h4>
+      <p>${p.desc}</p>
+    </div>
+  `).join('');
+}
+
+function selectPosition(name){
+  appData.mediaPosition=appData.mediaPosition===name?null:name;
+  saveData();renderPositions();
+  showToast(appData.mediaPosition?'已选择：'+appData.mediaPosition:'已取消选择');
+}
+
+// ===== Readings =====
+function renderReadings(){
+  const cats={'求职成长':'readJobList','投资理财':'readInvestList','文化底蕴':'readCultureList'};
+  for(const[cat,id]of Object.entries(cats)){
+    const el=document.getElementById(id);
+    if(!el)continue;
+    const items=appData.readings.filter(r=>r.category===cat);
+    if(items.length===0){
+      el.innerHTML='<div class="empty">暂无推荐</div>';
+      continue;
+    }
+    el.innerHTML=items.map(r=>{
+      const icon=cat==='求职成长'?'💼':cat==='投资理财'?'💰':'📖';
+      const statusBadge=r.status==='已读'?'badge-applied':r.status==='在读'?'badge-interview':'badge-pending';
+      return `<div class="read-card">
+        <div class="read-icon">${icon}</div>
+        <div class="read-info">
+          <div class="read-title">${r.title}</div>
+          <div class="read-author">${r.author}</div>
+          <div class="read-desc">${r.note||''}</div>
+          <div style="margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <span class="badge ${statusBadge}">${r.status}</span>
+            <select class="select btn-sm" style="width:auto;padding:2px 6px;font-size:11px" onchange="updateReadingStatus(${r.id},this.value)">
+              <option ${r.status==='未读'?'selected':''}>未读</option>
+              <option ${r.status==='在读'?'selected':''}>在读</option>
+              <option ${r.status==='已读'?'selected':''}>已读</option>
+            </select>
+            ${r.link?`<a href="${r.link}" target="_blank" class="feed-link">📖 查看/购买</a>`:''}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Tracker
+  const tracker=document.getElementById('readingList');
+  if(tracker){
+    if(appData.readings.length===0){
+      tracker.innerHTML='<div class="empty">暂无阅读记录</div>';
+      return;
+    }
+    tracker.innerHTML=appData.readings.map(r=>{
+      const statusBadge=r.status==='已读'?'badge-applied':r.status==='在读'?'badge-interview':'badge-pending';
+      return `<div class="read-card">
+        <div class="read-icon">📖</div>
+        <div class="read-info">
+          <div class="read-title">${r.title}</div>
+          <div class="read-author">${r.author} · ${r.category}</div>
+          <div class="read-desc">${r.note||''}</div>
+          <div style="margin-top:6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <span class="badge ${statusBadge}">${r.status}</span>
+            ${r.link?`<a href="${r.link}" target="_blank" class="feed-link">📖 查看</a>`:''}
+            <button class="btn btn-danger btn-sm" onclick="deleteReading(${r.id})">删除</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function addReading(){
+  const title=document.getElementById('rd-title').value.trim();
+  if(!title){showToast('请输入书名');return}
+  const r={
+    id:Date.now(),
+    title,
+    author:document.getElementById('rd-author').value.trim()||'佚名',
+    category:document.getElementById('rd-category').value,
+    status:document.getElementById('rd-status').value,
+    note:document.getElementById('rd-note').value.trim(),
+  };
+  appData.readings.unshift(r);
+  saveData();renderReadings();
+  document.getElementById('rd-title').value='';
+  document.getElementById('rd-author').value='';
+  document.getElementById('rd-note').value='';
+  showToast('已添加：'+title);
+}
+
+function updateReadingStatus(id,status){
+  const r=appData.readings.find(r=>r.id===id);
+  if(r){r.status=status;saveData();renderReadings();showToast('状态更新：'+status)}
+}
+
+function deleteReading(id){
+  appData.readings=appData.readings.filter(r=>r.id!==id);
+  saveData();renderReadings();
+  showToast('已删除');
+}
+
+// ===== Settings =====
+function exportData(){
+  const blob=new Blob([JSON.stringify(appData,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='ai-workbench-backup.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('数据已导出');
+}
+
+function importData(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      const data=JSON.parse(ev.target.result);
+      appData={...JSON.parse(JSON.stringify(defaultData)),...data};
+      saveData();renderAll();
+      showToast('数据导入成功');
+    }catch(err){showToast('导入失败：文件格式错误')}
+  };
+  reader.readAsText(file);
+}
+
+function clearData(){
+  if(!confirm('确定要清空所有数据吗？此操作不可恢复。'))return;
+  appData=JSON.parse(JSON.stringify(defaultData));
+  appData.companies=[];appData.watchlist=[];appData.readings=[];appData.mediaPosition=null;
+  saveData();renderAll();
+  showToast('数据已清空');
+}
+
+// ===== Utils =====
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+function copyText(el){
+  const text=el.textContent;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(()=>showToast('已复制到剪贴板'));
+  }else{
+    const range=document.createRange();
+    range.selectNode(el);
+    const sel=window.getSelection();
+    sel.removeAllRanges();sel.addRange(range);
+    try{document.execCommand('copy');showToast('已复制')}catch(e){showToast('复制失败，请手动选择')}
+    sel.removeAllRanges();
+  }
+}
+
+// ===== Init =====
+function renderAll(){
+  renderCompanies();
+  renderStocks();
+  renderPositions();
+  renderReadings();
+}
+
+loadData();
+renderAll();
+</script>
+</body>
+</html>
